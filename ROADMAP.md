@@ -77,6 +77,8 @@ v1 is fully offline, but the data layer follows these rules so sync/accounts can
 - [x] Sport warm-ups started in the guided workout, training reminders with a Start button, home-screen widget
 - [x] Health Connect activity types match whole words ("Supine Spinal Twist" is no spin class)
 - [x] Renamed to FitTraKKing (phone and watch); backups in Downloads/KK-Fittracking move to Downloads/FitTraKKing by themselves. The app ID stays com.kkfittracking, so the update keeps all data
+- [x] KK Upper body split into two shorter days: A · Push & shoulders (with the rotator cuff work) and B · Pull & grip (with the finger and elbow tendon work)
+- [ ] Maybe later: Garmin watch app (Connect IQ, Monkey C) talking to the phone app
 - [ ] Maybe later: iPhone version (Kotlin Multiplatform + Compose Multiplatform; HealthKit; a separate Apple Watch app)
 - [x] Health Connect: read daily steps that Samsung Health, Google Fit, Fitbit and watches already record; write finished workouts back so they show up in those apps
 - [ ] Cloud sync + accounts (see "Keeping the door open for cloud sync")

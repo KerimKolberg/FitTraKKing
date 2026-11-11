@@ -32,9 +32,10 @@ object StarterPlans {
 
     val plans: List<StarterPlan> = listOf(
         // Kerim's own plans: a muscular exercise and its tendon work, block by block.
+        // KK Upper body in two days, each about 25 sets: pressing with the shoulder's rotator cuff work,
+        // then pulling with the grip, finger and elbow tendon work.
         blocks(
-            "KK Upper body", 3,
-            listOf("Pull Up" to sets(reps = 8), "Half-Crimp Hang" to sets(kg = 80.0)),
+            "KK Upper body A · Push & shoulders", 3,
             listOf(
                 "Incline Dumbbell Bench Press" to sets(reps = 10, kg = 25.0),
                 "Slow Cable External Rotation" to sets(reps = 8, kg = 20.0),
@@ -46,15 +47,21 @@ object StarterPlans {
                 "Slow High Cable Internal Rotation" to sets(reps = 8, kg = 20.0),
             ),
             listOf(
-                "Reverse Curl" to sets(reps = 15, kg = 50.0),
-                "Overhead Cable Triceps Extension" to sets(reps = 15, kg = 50.0),
-                "Eccentric Wrist Flexion" to sets(reps = 8, kg = 10.0),
-                "Eccentric Wrist Extension" to sets(reps = 8, kg = 10.0),
-            ),
-            listOf(
                 "Lu Raise" to sets(reps = 15, kg = 8.0),
+                "Overhead Cable Triceps Extension" to sets(reps = 15, kg = 50.0),
+            ),
+        ),
+        blocks(
+            "KK Upper body B · Pull & grip", 3,
+            listOf("Pull Up" to sets(reps = 8), "Half-Crimp Hang" to sets(kg = 80.0)),
+            listOf(
                 "One-Arm Dumbbell Row" to sets(reps = 10, kg = 36.0),
                 "Plate Pinch Hold" to sets(kg = 15.0),
+            ),
+            listOf(
+                "Reverse Curl" to sets(reps = 15, kg = 50.0),
+                "Eccentric Wrist Flexion" to sets(reps = 8, kg = 10.0),
+                "Eccentric Wrist Extension" to sets(reps = 8, kg = 10.0),
             ),
         ),
         blocks(
