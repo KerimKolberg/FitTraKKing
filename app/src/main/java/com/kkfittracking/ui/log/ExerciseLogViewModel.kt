@@ -300,7 +300,11 @@ class ExerciseLogViewModel(
     fun adjustReps(direction: Int) = updateInput(input.adjustReps(direction))
 
     /** Adds a new set, or updates the selected one. */
+    /** A new set is being saved: a second tap on Save meanwhile does not log it twice. */
+    private var saving = false
+
     fun save() {
+        if (saving) return
         val state = uiState.value
         val exercise = state.exercise ?: return
         when (val result = input.toSetValues(exercise.type, state.units)) {
@@ -320,10 +324,15 @@ class ExerciseLogViewModel(
                 if (intervalTimer.state.value.let { it.phase == IntervalPhase.DONE && it.exerciseId == exerciseId }) {
                     intervalTimer.reset()
                 }
+                saving = true
                 viewModelScope.launch {
                     val best = state.history.flatMap { it.sets }.mapNotNull { recordScore(it.values, exercise.type) }.maxOrNull()
                     val score = recordScore(values, exercise.type)
-                    workoutRepository.addSet(date, exerciseId, values)
+                    try {
+                        workoutRepository.addSet(date, exerciseId, values)
+                    } finally {
+                        saving = false
+                    }
                     if (best != null && score != null && score > best) {
                         celebrate(listOf("⭐ New personal record! +${XpRules.PER_RECORD} XP"))
                     }
