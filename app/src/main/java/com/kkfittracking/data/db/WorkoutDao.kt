@@ -60,6 +60,7 @@ data class ExportRow(
     val exerciseName: String,
     val categoryName: String,
     val exerciseType: ExerciseType,
+    val exerciseWeightUnit: String,
     @Embedded val set: WorkoutSetEntity,
 )
 
@@ -285,7 +286,8 @@ interface WorkoutDao {
 
     @Query(
         """
-        SELECT w.date AS date, e.name AS exerciseName, c.name AS categoryName, e.type AS exerciseType, s.*
+        SELECT w.date AS date, e.name AS exerciseName, c.name AS categoryName, e.type AS exerciseType,
+            e.weightUnit AS exerciseWeightUnit, s.*
         FROM workout_sets s
         JOIN workout_exercises we ON we.id = s.workoutExerciseId AND we.deletedAt IS NULL
         JOIN workouts w ON w.id = we.workoutId AND w.deletedAt IS NULL

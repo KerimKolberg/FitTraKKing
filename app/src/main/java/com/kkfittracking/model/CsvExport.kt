@@ -9,17 +9,20 @@ data class ExportSet(
     val category: String,
     val type: ExerciseType,
     val values: SetValues,
+    /** The exercise's own weight unit (lb, kg or machine levels); null follows the app's. */
+    val weightUnits: UnitSystem? = null,
 )
 
 /**
- * Spreadsheet-friendly CSV: one row per set, numbers with a "." decimal point, weights and
- * distances in the user's units (named in the header), and time in seconds.
+ * Spreadsheet-friendly CSV: one row per set, numbers with a "." decimal point, weights in each
+ * exercise's own unit (named in the Unit column: kg, lb or lvl for machine levels), distances in
+ * the user's units (named in the header), the side of one-sided sets, and time in seconds.
  */
 object CsvExport {
     fun workouts(sets: List<ExportSet>, units: UnitSystem): String {
         val header = listOf(
-            "Date", "Exercise", "Category", "Set",
-            "Weight (${units.weightUnit})", "Reps",
+            "Date", "Exercise", "Category", "Set", "Side",
+            "Weight", "Unit", "Reps",
             "Distance (${units.distanceUnit})", "Height (${units.lengthUnit})",
             "Time (s)", "RPE", "Note", "Drop set",
         )
@@ -28,13 +31,17 @@ object CsvExport {
             var number = 0
             exerciseSets.map { set ->
                 val v = set.values
+                val weightUnits = set.weightUnits ?: units
+                val weight = v.weightKg?.takeIf { set.type.usesWeight }
                 if (!v.isDropSet || number == 0) number++
                 listOf(
                     set.date.toString(),
                     set.exercise,
                     set.category,
                     number.toString(),
-                    v.weightKg?.takeIf { set.type.usesWeight }?.let { formatNumber(units.weightFromKg(it)) }.orEmpty(),
+                    v.side?.label.orEmpty(),
+                    weight?.let { formatNumber(weightUnits.weightFromKg(it)) }.orEmpty(),
+                    weightUnits.weightUnit.takeIf { weight != null }.orEmpty(),
                     v.reps?.toString().orEmpty(),
                     v.distanceMeters?.takeIf { set.type.usesDistance }?.let { formatNumber(units.distanceFromMeters(it)) }.orEmpty(),
                     v.distanceMeters?.takeIf { set.type.usesHeight }?.let { formatNumber(units.heightFromMeters(it)) }.orEmpty(),

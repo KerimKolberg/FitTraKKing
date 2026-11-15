@@ -95,7 +95,7 @@ fun WorkoutScreen(
     }
     // Steps keep coming in during the day: read them again whenever the screen comes back.
     LifecycleResumeEffect(Unit) {
-        viewModel.refreshSteps()
+        viewModel.onResume()
         onPauseOrDispose { }
     }
     var exerciseToDelete by remember { mutableStateOf<DayExercise?>(null) }

@@ -7,6 +7,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+/** The GitHub Actions run number; 1 for builds on a computer. */
+val ciBuildNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+
 android {
     namespace = "com.kkfittracking.watch"
     compileSdk = 36
@@ -16,8 +19,9 @@ android {
         applicationId = "com.kkfittracking"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        // Each CI build gets the next number, shown in Settings, so you can tell which build is installed.
+        versionCode = ciBuildNumber
+        versionName = "0.1.$ciBuildNumber"
     }
 
     signingConfigs {

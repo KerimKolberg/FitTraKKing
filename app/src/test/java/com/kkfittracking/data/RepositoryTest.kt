@@ -14,6 +14,7 @@ import com.kkfittracking.model.BodyMetric
 import com.kkfittracking.model.ExerciseLink
 import com.kkfittracking.model.ExercisePlan
 import com.kkfittracking.model.ExerciseType
+import com.kkfittracking.model.GuideSession
 import com.kkfittracking.model.Muscle
 import com.kkfittracking.model.PlannedExercise
 import com.kkfittracking.model.SetValues
@@ -23,6 +24,7 @@ import com.kkfittracking.model.UnitSystem
 import com.kkfittracking.model.dayWorkouts
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -574,6 +576,34 @@ class RepositoryTest {
         assertTrue(summary!!.stoppedEarly)
         assertEquals(67, summary.completion.percent)
         assertEquals(false, guide.isRunning)
+    }
+
+    @Test
+    fun aGuidedWorkoutCarriesOnAfterAndroidClosesTheApp() = runTest {
+        exercises.syncBuiltIns()
+        exercises.savePlan(bench, ExercisePlan(sets = 2))
+        workouts.addPlannedExercises(day, listOf(PlannedExercise(bench)), withSupersets = false)
+        val settingsFile = Files.createTempDirectory("settings").resolve("test.preferences_pb").toFile()
+        val settings = SettingsRepository(PreferenceDataStoreFactory.create(produceFile = { settingsFile }))
+        val first = GuidedWorkout(backgroundScope, workouts, settings, onStarted = {}, now = { clock })
+        first.start(day)
+        first.skip(squat)
+        // Saved as it runs.
+        first.state.first { it.isActive }
+        while (settings.savedGuideSession()?.let(GuideSession::fromJson)?.skipped?.contains(squat) != true) yield()
+
+        // A new start of the app (the same settings file): the workout picks up where it was.
+        var notified = false
+        val again = GuidedWorkout(backgroundScope, workouts, settings, onStarted = { notified = true }, now = { clock + 60_000 })
+        val restored = again.state.first { it.isActive }
+        assertEquals(day.toEpochDay(), restored.session?.epochDay)
+        assertEquals(setOf(squat), restored.session?.skipped)
+        assertTrue(notified)
+
+        // Many hours later it is over and does not come back.
+        val saved = GuideSession.fromJson(settings.savedGuideSession()!!)!!
+        assertTrue(saved.canResume(clock + 5 * 3_600_000L))
+        assertEquals(false, saved.canResume(clock + 7 * 3_600_000L))
     }
 
     @Test

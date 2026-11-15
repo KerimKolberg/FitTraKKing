@@ -145,6 +145,7 @@ class WorkoutViewModel(
         )
 
     init {
+        if (savedStateHandle.get<Long>(KEY_SEEN_TODAY) == null) lastSeenToday = LocalDate.now()
         viewModelScope.launch { epochDay.collect { refreshSteps() } }
     }
 
@@ -168,6 +169,26 @@ class WorkoutViewModel(
     fun showPreviousDay() = moveDays(-1)
 
     fun showNextDay() = moveDays(1)
+
+    /** The date it was when the screen last checked, to notice midnight passing; kept if Android closes the app. */
+    private var lastSeenToday: LocalDate
+        get() = savedStateHandle.get<Long>(KEY_SEEN_TODAY)?.let(LocalDate::ofEpochDay) ?: LocalDate.now()
+        set(value) {
+            savedStateHandle[KEY_SEEN_TODAY] = value.toEpochDay()
+        }
+
+    /**
+     * When the screen comes back: if midnight passed while it showed "today", it moves on to the new
+     * today, so a set is never logged on yesterday by mistake. A day picked by hand stays.
+     */
+    fun onResume() {
+        val today = LocalDate.now()
+        if (today != lastSeenToday) {
+            if (epochDay.value == lastSeenToday.toEpochDay()) savedStateHandle[KEY_EPOCH_DAY] = today.toEpochDay()
+            lastSeenToday = today
+        }
+        refreshSteps()
+    }
 
     fun showToday() {
         savedStateHandle[KEY_EPOCH_DAY] = LocalDate.now().toEpochDay()
@@ -253,6 +274,7 @@ class WorkoutViewModel(
 
     companion object {
         const val KEY_EPOCH_DAY = "epochDay"
+        private const val KEY_SEEN_TODAY = "seenToday"
 
         val Factory = appViewModelFactory { container ->
             WorkoutViewModel(

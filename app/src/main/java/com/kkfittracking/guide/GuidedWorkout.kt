@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /** A guided workout as the screens, the notification and (later) the watch show it. */
@@ -77,6 +78,19 @@ class GuidedWorkout(
             }
         }
         .stateIn(scope, SharingStarted.Eagerly, GuideState())
+
+    init {
+        // A workout that was running when Android closed the app carries on where it was; from then
+        // on every change is saved, and stopping clears it.
+        scope.launch {
+            val saved = settingsRepository.savedGuideSession()?.let(GuideSession::fromJson)
+            if (session.value == null && saved != null && saved.canResume(now())) {
+                session.value = saved
+                onStarted()
+            }
+            session.collect { settingsRepository.saveGuideSession(it?.toJson()) }
+        }
+    }
 
     /** Whether a guided workout runs, right away (the [state] follows a moment later). */
     val isRunning: Boolean get() = session.value != null

@@ -10,6 +10,8 @@ import com.kkfittracking.model.CsvExport
 import com.kkfittracking.model.ExportFile
 import com.kkfittracking.model.ExportSet
 import com.kkfittracking.model.SetValues
+import com.kkfittracking.model.Side
+import com.kkfittracking.model.UnitSystem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -87,7 +89,9 @@ class DataTransfer(
                     rpe = row.set.rpe,
                     note = row.set.comment,
                     isDropSet = row.set.isDropSet,
+                    side = Side.of(row.set.side),
                 ),
+                weightUnits = UnitSystem.entries.firstOrNull { it.name == row.exerciseWeightUnit },
             )
         }
         return CsvExport.workouts(sets, units)

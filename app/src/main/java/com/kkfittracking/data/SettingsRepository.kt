@@ -13,6 +13,7 @@ import com.kkfittracking.model.Settings
 import com.kkfittracking.model.ThemeMode
 import com.kkfittracking.model.UnitSystem
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.DayOfWeek
 
@@ -50,6 +51,13 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun setAutoStartRestTimer(value: Boolean) = dataStore.edit { it[AUTO_START_REST_TIMER] = value }
 
     suspend fun setThemeMode(value: ThemeMode) = dataStore.edit { it[THEME_MODE] = value.name }
+
+    /** The guided workout that runs, saved so it carries on if Android closes the app; null when none runs. */
+    suspend fun savedGuideSession(): String? = dataStore.data.first()[GUIDE_SESSION]
+
+    suspend fun saveGuideSession(json: String?) = dataStore.edit {
+        if (json == null) it.remove(GUIDE_SESSION) else it[GUIDE_SESSION] = json
+    }
 
     /** When the last backup file was saved, or null if never. */
     val lastBackupAt: Flow<Long?> = dataStore.data.map { it[LAST_BACKUP_AT] }
@@ -144,6 +152,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         private val PROGRESSION_HINTS = booleanPreferencesKey("progression_hints")
         private val WARM_UP_SETS = booleanPreferencesKey("warm_up_sets")
         private val BAR_KG = doublePreferencesKey("bar_kg")
+        private val GUIDE_SESSION = stringPreferencesKey("guide_session")
     }
 }
 

@@ -14,6 +14,7 @@ import com.kkfittracking.model.UnitSystem
 import com.kkfittracking.model.guideSuggestion
 import com.kkfittracking.model.nextStep
 import com.kkfittracking.model.supersetContextOf
+import com.kkfittracking.model.todayFlow
 import com.kkfittracking.model.trackKind
 import com.kkfittracking.timer.RestTimer
 import com.kkfittracking.wear.WatchCommand
@@ -27,6 +28,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
@@ -57,7 +59,8 @@ class WatchBridge(
     fun start() {
         scope.launch {
             val rest = restTimer.state.map { Rest(it.isRunning, it.totalSeconds, it.label) }.distinctUntilChanged()
-            val today = workouts.observeDay(LocalDate.now()).map { it.size }.distinctUntilChanged()
+            // How many exercises today has, for the watch's start screen; a new day after midnight.
+            val today = todayFlow().flatMapLatest { workouts.observeDay(it) }.map { it.size }.distinctUntilChanged()
             combine(guide.state, rest, settingsRepository.settings, today) { state, restNow, settings, count ->
                 Inputs(state, restNow, settings, count)
             }

@@ -22,11 +22,11 @@ class CsvExportTest {
             UnitSystem.METRIC,
         )
         val lines = csv.trimEnd().split("\r\n")
-        assertEquals("Date,Exercise,Category,Set,Weight (kg),Reps,Distance (km),Height (cm),Time (s),RPE,Note,Drop set", lines[0])
-        assertEquals("2026-09-25,Flat Barbell Bench Press,Chest,1,100,5,,,,,,", lines[1])
-        assertEquals("2026-09-25,Flat Barbell Bench Press,Chest,2,100,4,,,,,,", lines[2])
-        assertEquals("2026-09-25,Box Jump,Plyometrics,1,,5,,60,,,,", lines[3])
-        assertEquals("2026-09-25,Tennis,Sports,1,,,,,3600,7,\"doubles, won 6-4\",", lines[4])
+        assertEquals("Date,Exercise,Category,Set,Side,Weight,Unit,Reps,Distance (km),Height (cm),Time (s),RPE,Note,Drop set", lines[0])
+        assertEquals("2026-09-25,Flat Barbell Bench Press,Chest,1,,100,kg,5,,,,,,", lines[1])
+        assertEquals("2026-09-25,Flat Barbell Bench Press,Chest,2,,100,kg,4,,,,,,", lines[2])
+        assertEquals("2026-09-25,Box Jump,Plyometrics,1,,,,5,,60,,,,", lines[3])
+        assertEquals("2026-09-25,Tennis,Sports,1,,,,,,,3600,7,\"doubles, won 6-4\",", lines[4])
     }
 
     @Test
@@ -35,7 +35,22 @@ class CsvExportTest {
             listOf(ExportSet(day, "Squat", "Legs", ExerciseType.WEIGHT_REPS, SetValues(100.0, 5))),
             UnitSystem.IMPERIAL,
         )
-        assertEquals("2026-09-25,Squat,Legs,1,220.46,5,,,,,,", csv.trimEnd().split("\r\n")[1])
+        assertEquals("2026-09-25,Squat,Legs,1,,220.46,lb,5,,,,,,", csv.trimEnd().split("\r\n")[1])
+    }
+
+    @Test
+    fun machineLevelsAndSidesKeepTheirOwnUnit() {
+        val csv = CsvExport.workouts(
+            listOf(
+                ExportSet(day, "Leg Press", "Legs", ExerciseType.WEIGHT_REPS, SetValues(12.0, 10), UnitSystem.LEVELS),
+                ExportSet(day, "Split Squat", "Legs", ExerciseType.WEIGHT_REPS, SetValues(20.0, 8, side = Side.LEFT)),
+            ),
+            UnitSystem.IMPERIAL,
+        )
+        val lines = csv.trimEnd().split("\r\n")
+        // Level 12 stays level 12, whatever the app's unit.
+        assertEquals("2026-09-25,Leg Press,Legs,1,,12,lvl,10,,,,,,", lines[1])
+        assertEquals("2026-09-25,Split Squat,Legs,1,Left,44.09,lb,8,,,,,,", lines[2])
     }
 
     @Test
@@ -66,7 +81,7 @@ class CsvExportTest {
             UnitSystem.METRIC,
         )
         val lines = csv.trimEnd().split("\r\n")
-        assertEquals("2026-09-25,Curl,Biceps,1,16,6,,,,,,yes", lines[2])
-        assertEquals("2026-09-25,Curl,Biceps,2,20,8,,,,,,", lines[3])
+        assertEquals("2026-09-25,Curl,Biceps,1,,16,kg,6,,,,,,yes", lines[2])
+        assertEquals("2026-09-25,Curl,Biceps,2,,20,kg,8,,,,,,", lines[3])
     }
 }

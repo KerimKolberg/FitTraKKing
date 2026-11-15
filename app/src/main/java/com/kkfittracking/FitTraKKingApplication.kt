@@ -3,14 +3,12 @@ package com.kkfittracking
 import android.app.Application
 import com.kkfittracking.background.BackgroundWork
 import com.kkfittracking.background.TodayWidget
+import com.kkfittracking.model.todayFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FitTraKKingApplication : Application() {
@@ -36,12 +34,7 @@ class FitTraKKingApplication : Application() {
         }
         // The home-screen widget follows today's log while the app runs (and refreshes itself every 30 minutes).
         container.appScope.launch {
-            flow {
-                while (true) {
-                    emit(LocalDate.now())
-                    delay(60_000)
-                }
-            }.distinctUntilChanged()
+            todayFlow()
                 .flatMapLatest { container.workoutRepository.observeDay(it) }
                 .collect { TodayWidget.update(this@FitTraKKingApplication, it) }
         }

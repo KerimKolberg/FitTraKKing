@@ -1,5 +1,7 @@
 package com.kkfittracking.model
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlin.math.roundToInt
 
 /** Sets the guide expects of an exercise that has no number of sets planned. */
@@ -226,6 +228,7 @@ fun guideSuggestion(day: List<DayExercise>, target: GuideTarget, settings: Setti
  * A guided workout in progress on [epochDay]. Times are wall-clock milliseconds; time spent paused
  * does not count as training time.
  */
+@Serializable
 data class GuideSession(
     val epochDay: Long,
     val startedAtMillis: Long,
@@ -246,6 +249,21 @@ data class GuideSession(
         pausedAtMillis?.let { copy(pausedAtMillis = null, pausedMillis = pausedMillis + (now - it).coerceAtLeast(0)) } ?: this
 
     fun skip(exerciseId: String): GuideSession = copy(skipped = skipped + exerciseId)
+
+    /** Still worth picking up after the app was closed: started less than [MAX_RESUME_HOURS] hours ago. */
+    fun canResume(now: Long): Boolean = now - startedAtMillis in 0 until MAX_RESUME_HOURS * 3_600_000L
+
+    fun toJson(): String = json.encodeToString(serializer(), this)
+
+    companion object {
+        /** A guided workout older than this is over, even if it was never stopped. */
+        const val MAX_RESUME_HOURS = 6
+
+        private val json = Json { ignoreUnknownKeys = true }
+
+        /** Null when the text is not a saved session (or from a version it cannot read). */
+        fun fromJson(text: String): GuideSession? = runCatching { json.decodeFromString(serializer(), text) }.getOrNull()
+    }
 }
 
 /** What a stopped guided workout did: shown once it ends. */
