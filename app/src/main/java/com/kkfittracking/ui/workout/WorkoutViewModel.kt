@@ -145,7 +145,7 @@ class WorkoutViewModel(
         )
 
     init {
-        if (savedStateHandle.get<Long>(KEY_SEEN_TODAY) == null) lastSeenToday = LocalDate.now()
+        if (savedStateHandle.get<Long>(KEY_SEEN_TODAY) == null) savedStateHandle[KEY_SEEN_TODAY] = LocalDate.now().toEpochDay()
         viewModelScope.launch { epochDay.collect { refreshSteps() } }
     }
 
